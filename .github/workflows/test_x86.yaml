@@ -1,0 +1,77 @@
+name: Test X86 Firmwares
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+env:
+  PROJECT_TYPE: UEFI
+  FORCE_INSTALL: 1
+  WERROR: 1
+  QEMU_VERSION_TAG: qemu-ci-8.0.0-r2
+
+jobs:
+  test-firmwares:
+    name: Test
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [
+          {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "XCODE5", targets: "RELEASE,DEBUG,NOOPT"},
+          {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "VS2019", targets: "RELEASE,DEBUG,NOOPT"},
+          {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "CLANGPDB", targets: "RELEASE,DEBUG,NOOPT"},
+          {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "CLANGDWARF", targets: "RELEASE,DEBUG,NOOPT"},
+          {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "GCC5", targets: "RELEASE,DEBUG,NOOPT"},
+        ]
+    steps:
+      - uses: actions/checkout@v3
+      #- name: Checkout ocbuild repository
+      #  uses: actions/checkout@v3
+      #  with:
+      #    repository: acidanthera/ocbuild
+      #    ref: master
+      #    path: ./
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3 python3-pip libglib2.0-dev libfdt-dev libpixman-1-dev libepoxy-dev libcapstone-dev libsdl2-dev libnuma-dev libgtk-3-dev libvte-2.91-dev libbrlapi-dev libiscsi-dev libnfs-dev  librbd-dev libxen-dev
+          python3 -m pip install -r ./ocbuild/requirements.txt
+
+      - name: Downloading QEMU
+        uses: robinraju/release-downloader@v1.7
+        with:
+          repository: "acidanthera/OcBinaryData"
+          tag: ${{ env.QEMU_VERSION_TAG }}
+          fileName: "qemu.tar.xz"
+
+      - name: Installing QEMU and add to PATH
+        run: |
+          echo "${HOME}/qemu/bin" >> $GITHUB_PATH
+          tar -xJf ./qemu.tar.xz -C $HOME
+
+      - name: Unzip artifacts
+        run: unzip ./artifacts/"$TOOLCHAIN"_fw_artifacts.zip -d ./
+        env:
+          TOOLCHAIN: ${{ matrix.package.toolchain }}
+
+      - name: Run TestLinux
+        run: |
+          IFS=', ' read -r -a TARGETS <<< "$TARGETS"
+          IFS=', ' read -r -a ARCHS <<< "$ARCHS"
+          for target in "${TARGETS[@]}"; do
+            for arch in "${ARCHS[@]}"; do
+              echo Checking "$PACKAGE""$arch" "$target"_"$TOOLCHAIN"
+                python3 ocbuild/test_qemu_fw.py ./firmware_artifacts/"$PACKAGE"/"$arch"/"$target"_"$TOOLCHAIN"/FW.fd --test-linux
+            done
+          done
+        env:
+          PACKAGE: ${{ matrix.package.name }}
+          ARCHS: ${{ matrix.package.archs }}
+          TARGETS: ${{ matrix.package.targets }}
+          TOOLCHAIN: ${{ matrix.package.toolchain }}
