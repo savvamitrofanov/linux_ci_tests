@@ -166,15 +166,15 @@ build_linux_image() {
       "$SRCDIR"/linux || xfatal "Cloning the Linux kernel source from ${LINUX_REPO_URL} with tag ${LINUX_KERNEL_TAG} failed!"
 
     # Applies patches
-    pushd "$WORKDIR/src/linux" >/dev/null || exit 1
+    #pushd "$WORKDIR/src/linux" >/dev/null || exit 1
 
-    git config user.email "$GIT_COMMITER_EMAIL"
-    git config user.name "$GIT_COMMITER_NAME"
+    #git config user.email "$GIT_COMMITER_EMAIL"
+    #git config user.name "$GIT_COMMITER_NAME"
 
-    git am --keep-cr --scissors --whitespace=fix \
-      "$WORKDIR"/patches/linux/"$LINUX_KERNEL_TAG"/* || xfatal "Applying Linux patches using git am failed!"
+    #git am --keep-cr --scissors --whitespace=fix \
+    #  "$WORKDIR"/patches/linux/"$LINUX_KERNEL_TAG"/* || xfatal "Applying Linux patches using git am failed!"
 
-    popd >/dev/null || exit 1
+    #popd >/dev/null || exit 1
   fi
 
   # Prepare config

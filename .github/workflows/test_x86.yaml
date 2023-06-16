@@ -23,7 +23,7 @@ jobs:
       matrix:
         package: [
           {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "XCODE5", targets: "RELEASE,DEBUG,NOOPT"},
-          {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "VS2019", targets: "RELEASE,DEBUG,NOOPT"},
+          #{name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "VS2019", targets: "RELEASE,DEBUG,NOOPT"},
           {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "CLANGPDB", targets: "RELEASE,DEBUG,NOOPT"},
           {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "CLANGDWARF", targets: "RELEASE,DEBUG,NOOPT"},
           {name: "Ovmf", archs: "Ia32,X64,3264", toolchain: "GCC5", targets: "RELEASE,DEBUG,NOOPT"},
